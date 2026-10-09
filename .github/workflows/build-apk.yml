@@ -1,5 +1,4 @@
-```yaml
-name: Build Afrikaans Tool
+Build Afrikaans Tool
 
 on:
   push:
