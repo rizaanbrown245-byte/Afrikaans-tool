@@ -4,6 +4,7 @@ import { useProgress } from '../context/ProgressContext';
 import { ADVENTURE_WORLDS } from '../data/badgesData';
 import { LESSONS_DATA } from '../data/curriculumData';
 import { OllieCharacter } from './OllieCharacter';
+import { WordOfTheDay } from './WordOfTheDay';
 
 interface AdventureMapProps {
   onSelectLesson: (lessonId: string) => void;
@@ -53,6 +54,9 @@ export const AdventureMap: React.FC<AdventureMapProps> = ({ onSelectLesson, onOp
           </div>
         </div>
       </div>
+
+      {/* Word of the Day Component */}
+      <WordOfTheDay />
 
       {/* Ollie's friendly advice */}
       <OllieCharacter
