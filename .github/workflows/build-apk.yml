@@ -1,6 +1,6 @@
-Build Afrikaans Tool
+ Build Afrikaans Tool
 
-on:
+'on':
   push:
     branches:
       - main
@@ -27,4 +27,3 @@ jobs:
 
       - name: Build project
         run: npm run build
-```
