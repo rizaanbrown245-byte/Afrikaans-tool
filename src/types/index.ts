@@ -146,4 +146,13 @@ export interface UserProgress {
   weakTopics: string[]; // lessonIds where user scored below 70%
   dailyChallengeDoneDate: string;
   soundEnabled: boolean;
+  examAttempts?: {
+    date: string;
+    score: number;
+    totalMarks: number;
+    percentage: number;
+    sectionBreakdown: Record<string, { earned: number; total: number }>;
+    passed: boolean;
+  }[];
+  childName?: string;
 }

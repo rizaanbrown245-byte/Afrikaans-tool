@@ -3,6 +3,7 @@ import { X, CheckCircle, AlertCircle, HelpCircle, Star, Volume2, ArrowRight, Rot
 import { LessonContent, QuizQuestion, DifficultyLevel } from '../types';
 import { useProgress } from '../context/ProgressContext';
 import { speakAfrikaans, sounds, getCurrentVoiceInfo, testSouthAfricanVoice, stopSpeaking } from '../utils/audio';
+import { fireLessonCompleteConfetti, fireQuickRewardConfetti } from '../utils/confetti';
 import { VoiceSettingsModal } from './VoiceSettingsModal';
 
 interface QuizModalProps {
@@ -77,13 +78,17 @@ export const QuizModal: React.FC<QuizModalProps> = ({ lesson, onClose }) => {
       setShowHint(false);
     } else {
       // Finished quiz!
-      const finalScore = score + (selectedAnswer.trim().toLowerCase() === currentQ.correctAnswer.trim().toLowerCase() ? 0 : 0);
       const total = activeQuestions.length;
-      const percent = Math.round((finalScore / total) * 100);
+      const percent = Math.round((score / total) * 100);
 
-      recordQuizResult(lesson.id, finalScore, total);
+      recordQuizResult(lesson.id, score, total);
       completeLesson(lesson.id, percent);
       setQuizFinished(true);
+      if (percent >= 60) {
+        fireLessonCompleteConfetti();
+      } else {
+        fireQuickRewardConfetti();
+      }
     }
   };
 
@@ -370,7 +375,17 @@ export const QuizModal: React.FC<QuizModalProps> = ({ lesson, onClose }) => {
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-3 pt-4">
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    sounds.playVictory();
+                    fireLessonCompleteConfetti();
+                  }}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-amber-950 font-black px-4 py-2.5 rounded-2xl shadow-sm flex items-center gap-1.5 text-sm transition-transform active:scale-95"
+                  title="Vier jou prestasie!"
+                >
+                  <span>🎉 Skiet Konfetti!</span>
+                </button>
                 <button
                   onClick={restartQuiz}
                   className="bg-amber-100 hover:bg-amber-200 text-amber-950 font-black px-4 py-2.5 rounded-2xl border border-amber-300 flex items-center gap-2 text-sm transition-transform active:scale-95"

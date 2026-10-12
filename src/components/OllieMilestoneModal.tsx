@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { Sparkles, Trophy, X, Volume2 } from 'lucide-react';
+import { Sparkles, Trophy, X, Volume2, PartyPopper } from 'lucide-react';
 import { OllieMilestoneBadge } from '../types';
 import { OllieBadgeGraphic } from './OllieBadgeGraphic';
 import { speakAfrikaans, sounds } from '../utils/audio';
+import { fireBadgeUnlockConfetti } from '../utils/confetti';
 
 interface OllieMilestoneModalProps {
   badge: OllieMilestoneBadge;
@@ -12,12 +13,18 @@ interface OllieMilestoneModalProps {
 export const OllieMilestoneModal: React.FC<OllieMilestoneModalProps> = ({ badge, onClose }) => {
   useEffect(() => {
     sounds.playVictory();
+    fireBadgeUnlockConfetti();
     // Speak congratulatory message in South African voice
     const timer = setTimeout(() => {
       speakAfrikaans(badge.unlockedMessageAf);
     }, 600);
     return () => clearTimeout(timer);
   }, [badge]);
+
+  const handleExtraConfetti = () => {
+    sounds.playVictory();
+    fireBadgeUnlockConfetti();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-300">
@@ -37,7 +44,11 @@ export const OllieMilestoneModal: React.FC<OllieMilestoneModalProps> = ({ badge,
 
         {/* Big Ollie Badge Graphic */}
         <div className="flex justify-center py-2">
-          <div className="animate-gentle-bounce">
+          <div
+            onClick={handleExtraConfetti}
+            className="animate-gentle-bounce cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+            title="Klik vir nog konfetti! 🎉"
+          >
             <OllieBadgeGraphic costume={badge.costume} size="lg" isUnlocked={true} />
           </div>
         </div>
@@ -77,13 +88,22 @@ export const OllieMilestoneModal: React.FC<OllieMilestoneModalProps> = ({ badge,
           </p>
         </div>
 
-        {/* Close and Celebrate */}
-        <button
-          onClick={onClose}
-          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-fun font-black py-3.5 rounded-2xl shadow-md text-base transition-transform active:scale-95"
-        >
-          Fantasties! Voeg by my Trofeë! 🏆
-        </button>
+        {/* Actions: Re-fire Confetti & Close */}
+        <div className="space-y-2 pt-1">
+          <button
+            onClick={handleExtraConfetti}
+            className="w-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-fun font-black py-2.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-transform active:scale-95"
+          >
+            <PartyPopper className="w-4 h-4 text-amber-700" />
+            <span>Vier Weer met Konfetti! 🎉</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-fun font-black py-3.5 rounded-2xl shadow-md text-base transition-transform active:scale-95"
+          >
+            Fantasties! Voeg by my Trofeë! 🏆
+          </button>
+        </div>
       </div>
     </div>
   );

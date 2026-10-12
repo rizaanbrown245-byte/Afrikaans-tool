@@ -15,12 +15,29 @@ import { DailyChallenge } from './components/DailyChallenge';
 import { ParentDashboard } from './components/ParentDashboard';
 import { BadgeModal } from './components/BadgeModal';
 import { OllieMilestoneModal } from './components/OllieMilestoneModal';
+import { LessonSearchModal } from './components/LessonSearchModal';
+import { RevisionExamViewer } from './components/RevisionExamViewer';
+import { OllieFloatingHelper } from './components/OllieFloatingHelper';
+import { PrintablesSection } from './components/PrintablesSection';
 import { LESSONS_DATA } from './data/curriculumData';
 
 function AppContent() {
   const { latestUnlockedOllieBadge, clearLatestUnlockedOllieBadge } = useProgress();
-  const [currentTab, setCurrentTab] = useState<'map' | 'lessons' | 'games' | 'stories' | 'daily' | 'parent' | 'trophies'>('map');
+  const [currentTab, setCurrentTab] = useState<'map' | 'lessons' | 'games' | 'stories' | 'daily' | 'printables' | 'parent' | 'trophies' | 'exam'>('map');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+
+  // Global Ctrl+K / Cmd+K listener to open search panel from anywhere
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleSelectLesson = (lessonId: string) => {
     setActiveLessonId(lessonId);
@@ -48,6 +65,7 @@ function AppContent() {
           setCurrentTab(tab);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
+        onOpenSearch={() => setIsSearchOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -57,6 +75,8 @@ function AppContent() {
           <AdventureMap
             onSelectLesson={handleSelectLesson}
             onOpenGames={() => setCurrentTab('games')}
+            onOpenExam={() => setCurrentTab('exam')}
+            onOpenSearch={() => setIsSearchOpen(true)}
           />
         )}
 
@@ -72,7 +92,10 @@ function AppContent() {
               onSelectLesson={(id) => setActiveLessonId(id)}
             />
           ) : (
-            <LessonsList onSelectLesson={handleSelectLesson} />
+            <LessonsList
+              onSelectLesson={handleSelectLesson}
+              onOpenSearch={() => setIsSearchOpen(true)}
+            />
           )
         )}
 
@@ -85,19 +108,46 @@ function AppContent() {
         {/* Render Daily Challenge */}
         {currentTab === 'daily' && <DailyChallenge />}
 
-        {/* Render Parent & Teacher Dashboard */}
+        {/* Render Printables & Flashcards Section */}
+        {currentTab === 'printables' && (
+          <PrintablesSection
+            onOpenLesson={handleSelectLesson}
+          />
+        )}
+
+        {/* Render Parent & Teacher Dashboard with Weekly Update Program */}
         {currentTab === 'parent' && (
           <ParentDashboard
             onPracticeLesson={(id) => {
               setActiveLessonId(id);
               setCurrentTab('lessons');
             }}
+            onOpenExam={() => setCurrentTab('exam')}
+            onOpenPrintables={() => setCurrentTab('printables')}
+          />
+        )}
+
+        {/* Render Grade 4 CAPS Revision Exam */}
+        {currentTab === 'exam' && (
+          <RevisionExamViewer
+            onBackToDashboard={() => setCurrentTab('map')}
+            onOpenParentUpdate={() => setCurrentTab('parent')}
           />
         )}
 
         {/* Render Trophies & Avatars */}
         {currentTab === 'trophies' && <BadgeModal />}
       </main>
+
+      {/* Deep Lesson Search Panel Modal */}
+      <LessonSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelectLesson={(lessonId) => {
+          setIsSearchOpen(false);
+          handleSelectLesson(lessonId);
+        }}
+      />
 
       {/* Ollie Milestone Celebration Modal */}
       {latestUnlockedOllieBadge && (
@@ -106,6 +156,13 @@ function AppContent() {
           onClose={clearLatestUnlockedOllieBadge}
         />
       )}
+
+      {/* Floating Ollie the Owl Helper Button */}
+      <OllieFloatingHelper
+        currentTab={currentTab}
+        activeLessonId={activeLessonId}
+        onOpenLesson={handleSelectLesson}
+      />
 
       {/* Footer */}
       <footer className="bg-white border-t-2 border-amber-200 py-6 px-4 text-center text-xs text-slate-500 font-bold space-y-1 no-print">

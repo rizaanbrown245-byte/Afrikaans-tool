@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Star, Flame, Diamond, Volume2, VolumeX, Award, Users, Settings } from 'lucide-react';
+import { Star, Flame, Diamond, Volume2, VolumeX, Award, Users, Settings, Search } from 'lucide-react';
 import { useProgress } from '../context/ProgressContext';
 import { ANIMAL_AVATARS } from '../data/badgesData';
 import { VoiceSettingsModal } from './VoiceSettingsModal';
 
 interface NavbarProps {
-  currentTab: 'map' | 'lessons' | 'games' | 'stories' | 'daily' | 'parent' | 'trophies';
-  setCurrentTab: (tab: 'map' | 'lessons' | 'games' | 'stories' | 'daily' | 'parent' | 'trophies') => void;
+  currentTab: 'map' | 'lessons' | 'games' | 'stories' | 'daily' | 'printables' | 'parent' | 'trophies' | 'exam';
+  setCurrentTab: (tab: 'map' | 'lessons' | 'games' | 'stories' | 'daily' | 'printables' | 'parent' | 'trophies' | 'exam') => void;
+  onOpenSearch?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpenSearch }) => {
   const { progress, setLanguageTrack, toggleSound } = useProgress();
   const [showVoiceModal, setShowVoiceModal] = useState(false);
 
@@ -128,6 +129,22 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
             )}
           </button>
 
+          {/* Quick Search Button */}
+          {onOpenSearch && (
+            <button
+              onClick={onOpenSearch}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border-2 border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-950 font-fun text-xs font-black shadow-2xs transition-all active:scale-95 group"
+              title="Soek lesse, grammatika en woorde (Ctrl+K of ⌘K)"
+            >
+              <Search className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline">Soek Lesse</span>
+              <span className="sm:hidden text-[11px]">Soek</span>
+              <kbd className="hidden lg:inline-block text-[10px] bg-amber-200/90 text-amber-900 px-1 py-0.5 rounded border border-amber-300 font-sans font-bold">
+                ⌘K
+              </kbd>
+            </button>
+          )}
+
           {/* South African Voice Settings Button */}
           <button
             onClick={() => setShowVoiceModal(true)}
@@ -151,6 +168,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
 
       {/* Main Navigation Tabs */}
       <nav className="max-w-7xl mx-auto px-2 sm:px-6 flex items-center overflow-x-auto no-scrollbar border-t border-amber-100 bg-amber-50/50 py-1 gap-1 sm:gap-2">
+        {/* Quick Search Tab Button */}
+        {onOpenSearch && (
+          <button
+            onClick={onOpenSearch}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm whitespace-nowrap transition-all text-amber-950 bg-amber-100/90 hover:bg-amber-200/90 border border-amber-300 shadow-2xs active:scale-95"
+            title="Soek 'n les of grammatikareël"
+          >
+            <Search className="w-3.5 h-3.5 text-amber-700" />
+            <span>Soek Paneel</span>
+          </button>
+        )}
+
         <button
           onClick={() => setCurrentTab('map')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm whitespace-nowrap transition-all ${
@@ -212,6 +241,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
         </button>
 
         <button
+          onClick={() => setCurrentTab('printables')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm whitespace-nowrap transition-all ${
+            currentTab === 'printables'
+              ? 'bg-amber-500 text-white shadow-sm'
+              : 'text-amber-950 hover:bg-amber-200/70'
+          }`}
+        >
+          <span>🖨️</span>
+          <span>Drukstukke (PDF)</span>
+        </button>
+
+        <button
           onClick={() => setCurrentTab('trophies')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm whitespace-nowrap transition-all ${
             currentTab === 'trophies'
@@ -221,6 +262,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
         >
           <Award className="w-4 h-4 text-amber-600" />
           <span>Trofeë & Diere</span>
+        </button>
+
+        <button
+          onClick={() => setCurrentTab('exam')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm whitespace-nowrap transition-all ${
+            currentTab === 'exam'
+              ? 'bg-rose-500 text-white shadow-sm'
+              : 'text-rose-950 bg-rose-100/60 hover:bg-rose-200/80'
+          }`}
+        >
+          <span>📝</span>
+          <span>Hersieningseksamen (50 Punte)</span>
         </button>
 
         <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, CheckCircle, Lock, Play, Sparkles } from 'lucide-react';
+import { Star, CheckCircle, Lock, Play, Sparkles, Search } from 'lucide-react';
 import { useProgress } from '../context/ProgressContext';
 import { ADVENTURE_WORLDS } from '../data/badgesData';
 import { LESSONS_DATA } from '../data/curriculumData';
@@ -9,9 +9,11 @@ import { WordOfTheDay } from './WordOfTheDay';
 interface AdventureMapProps {
   onSelectLesson: (lessonId: string) => void;
   onOpenGames: () => void;
+  onOpenExam?: () => void;
+  onOpenSearch?: () => void;
 }
 
-export const AdventureMap: React.FC<AdventureMapProps> = ({ onSelectLesson, onOpenGames }) => {
+export const AdventureMap: React.FC<AdventureMapProps> = ({ onSelectLesson, onOpenGames, onOpenExam, onOpenSearch }) => {
   const { progress } = useProgress();
 
   // Find next uncompleted lesson
@@ -51,9 +53,60 @@ export const AdventureMap: React.FC<AdventureMapProps> = ({ onSelectLesson, onOp
             >
               <span>🎮 Speel Speletjies</span>
             </button>
+            {onOpenExam && (
+              <button
+                onClick={onOpenExam}
+                className="bg-rose-500 hover:bg-rose-600 text-white border border-rose-300/60 px-4 py-2.5 rounded-2xl font-black text-sm flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-xs"
+              >
+                <span>📝 Hersieningseksamen</span>
+              </button>
+            )}
+            {onOpenSearch && (
+              <button
+                onClick={onOpenSearch}
+                className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-4 py-2.5 rounded-2xl font-black text-sm flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 backdrop-blur-xs"
+              >
+                <Search className="w-4 h-4 text-white" />
+                <span>Soek Lesse</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Quick Lesson Search Bar */}
+      {onOpenSearch && (
+        <div
+          onClick={onOpenSearch}
+          className="bg-white rounded-3xl p-4 sm:p-5 border-3 border-amber-200 hover:border-amber-400 shadow-2xs hover:shadow-md cursor-pointer transition-all flex flex-col sm:flex-row items-center justify-between gap-3 group"
+        >
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 text-xl group-hover:scale-110 transition-transform">
+              <Search className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-fun text-base sm:text-lg font-black text-slate-900 group-hover:text-amber-700 transition-colors">
+                  Soek vinnig enige les of grammatika-reël
+                </h3>
+                <span className="text-[10px] font-black bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300 hidden sm:inline-block">
+                  STOMPI • Tye • Meervoude
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-semibold">
+                Klik hier om deur al 15 CAPS-lesse, flitskaarte en woorde te soek...
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <span className="text-xs font-black text-amber-700 bg-amber-50 group-hover:bg-amber-100 px-3.5 py-2 rounded-xl border border-amber-200 transition-colors flex items-center gap-1.5">
+              <span>Maak Soek-Paneel Oop</span>
+              <span>→</span>
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Word of the Day Component */}
       <WordOfTheDay />

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight, HelpCircle, Check, Award, BookOpen, Lightbulb, Train, Play, Square, Gauge, Settings, Mic } from 'lucide-react';
+import { Volume2, VolumeX, ChevronLeft, ChevronRight, HelpCircle, Check, Award, BookOpen, Lightbulb, Train, Play, Square, Gauge, Settings, Mic, FileText, Scissors } from 'lucide-react';
 import { LessonContent, VocabWord } from '../types';
 import { LESSONS_DATA } from '../data/curriculumData';
 import { OllieCharacter } from './OllieCharacter';
 import { QuizModal } from './QuizModal';
+import { useProgress } from '../context/ProgressContext';
 import { speakAfrikaans, stopSpeaking, sounds, getCurrentVoiceInfo, testSouthAfricanVoice } from '../utils/audio';
+import { fireLessonCompleteConfetti } from '../utils/confetti';
+import { generateLessonStudyGuidePdf, generateLessonFlashcardsPdf } from '../utils/printablesPdfGenerator';
 import { VoiceSettingsModal } from './VoiceSettingsModal';
 import { SentenceAudioPlayer } from './SentenceAudioPlayer';
 
@@ -24,6 +27,10 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
 
   const prevLesson = currentIndex > 0 ? LESSONS_DATA[currentIndex - 1] : null;
   const nextLesson = currentIndex < LESSONS_DATA.length - 1 ? LESSONS_DATA[currentIndex + 1] : null;
+
+  const { progress, completeLesson } = useProgress();
+  const isCompleted = progress.completedLessonIds.includes(lesson.id);
+  const bestScore = progress.lessonScores[lesson.id] || 0;
 
   const [activeTab, setActiveTab] = useState<'learn' | 'vocab' | 'sentences' | 'stompi'>('learn');
   const [showQuiz, setShowQuiz] = useState(false);
@@ -170,12 +177,24 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {isCompleted && (
+              <button
+                onClick={() => {
+                  sounds.playVictory();
+                  fireLessonCompleteConfetti();
+                }}
+                className="bg-yellow-400 hover:bg-yellow-300 text-amber-950 font-black px-4 py-3 rounded-2xl text-xs sm:text-sm shadow-md flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95"
+                title="Vier jou prestasie met konfetti!"
+              >
+                <span>🎉 Skiet Konfetti!</span>
+              </button>
+            )}
             <button
               onClick={() => setShowQuiz(true)}
               className="bg-white text-amber-950 hover:bg-amber-100 px-5 py-3 rounded-2xl font-black text-sm shadow-md flex items-center gap-2 transition-transform hover:scale-105 active:scale-95"
             >
               <Award className="w-5 h-5 text-amber-600 fill-amber-500" />
-              <span>Doen Oefentoets & Kry Sterre! ⭐</span>
+              <span>{isCompleted ? 'Oefentoets Weer ⭐' : 'Doen Oefentoets & Kry Sterre! ⭐'}</span>
             </button>
           </div>
         </div>
@@ -625,6 +644,131 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
               <span className="font-black">Ollie se STOMPI-reël:</span> In Afrikaans is Werkwoord 1 ALTYD in die tweede posisie!
               Byvoorbeeld: <span className="underline decoration-amber-500 cursor-pointer" onClick={() => handlePronounce('stompi-ex', 'Die kinders eet nou appels')}>Die kinders (S) EET (V1) nou (T) appels (O). 🔊</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* LESSON COMPLETION & CELEBRATION REWARD BANNER                        */}
+      {/* =================================================================== */}
+      {isCompleted ? (
+        <div className="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-amber-500/15 border-3 border-emerald-400 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-3xl shadow-sm shrink-0">
+              🏆
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-fun font-black text-emerald-950 text-lg sm:text-xl">
+                  Les {lesson.topicNumber} Suksesvol Voltooi!
+                </h3>
+                <span className="bg-emerald-600 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
+                  Beste Puntsyfer: {bestScore}%
+                </span>
+              </div>
+              <p className="text-xs text-emerald-900 font-bold mt-0.5">
+                Mooi so! Jy het die inhoud bemeester en jou sterre en kentekens verdien.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                sounds.playPop();
+                generateLessonStudyGuidePdf(lesson, progress.childName);
+              }}
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-amber-950 border border-amber-300 font-fun font-black text-xs flex items-center gap-1.5 shadow-2xs transition-transform active:scale-95"
+              title="Laai A4 Studiegids af as PDF"
+            >
+              <FileText className="w-3.5 h-3.5 text-amber-700" />
+              <span>Studiegids (PDF)</span>
+            </button>
+            <button
+              onClick={() => {
+                sounds.playPop();
+                generateLessonFlashcardsPdf(lesson, progress.childName);
+              }}
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-blue-50 text-blue-950 border border-blue-300 font-fun font-black text-xs flex items-center gap-1.5 shadow-2xs transition-transform active:scale-95"
+              title="Laai uitknip-flitskaarte af as PDF"
+            >
+              <Scissors className="w-3.5 h-3.5 text-blue-700" />
+              <span>Flitskaarte (PDF)</span>
+            </button>
+            <button
+              onClick={() => {
+                sounds.playVictory();
+                fireLessonCompleteConfetti();
+              }}
+              className="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-amber-950 font-fun font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95"
+            >
+              <span>🎉 Skiet Konfetti!</span>
+            </button>
+            {nextLesson && (
+              <button
+                onClick={() => onSelectLesson(nextLesson.id)}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-fun font-black text-xs sm:text-sm flex items-center gap-1 shadow-sm transition-transform active:scale-95"
+              >
+                <span>Volgende Les →</span>
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-yellow-500/15 border-3 border-amber-300 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-14 h-14 rounded-2xl bg-amber-400 text-amber-950 flex items-center justify-center text-3xl shadow-sm shrink-0">
+              🎓
+            </div>
+            <div>
+              <h3 className="font-fun font-black text-amber-950 text-lg sm:text-xl">
+                Klaar geleer met hierdie les?
+              </h3>
+              <p className="text-xs text-amber-900 font-bold mt-0.5">
+                Voltooi die les om jou goue sterre, edelstene en nuwe kentekens te ontsluit!
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                sounds.playPop();
+                generateLessonStudyGuidePdf(lesson, progress.childName);
+              }}
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-amber-950 border border-amber-300 font-fun font-black text-xs flex items-center gap-1.5 shadow-2xs transition-transform active:scale-95"
+            >
+              <FileText className="w-3.5 h-3.5 text-amber-700" />
+              <span>Studiegids (PDF)</span>
+            </button>
+            <button
+              onClick={() => {
+                sounds.playPop();
+                generateLessonFlashcardsPdf(lesson, progress.childName);
+              }}
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-blue-50 text-blue-950 border border-blue-300 font-fun font-black text-xs flex items-center gap-1.5 shadow-2xs transition-transform active:scale-95"
+            >
+              <Scissors className="w-3.5 h-3.5 text-blue-700" />
+              <span>Flitskaarte (PDF)</span>
+            </button>
+            <button
+              onClick={() => {
+                completeLesson(lesson.id, 100);
+                fireLessonCompleteConfetti();
+              }}
+              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-fun font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95"
+              title="Merk les as voltooi met konfetti!"
+            >
+              <Check className="w-4 h-4" />
+              <span>Merk as Voltooi! 🏆</span>
+            </button>
+            <button
+              onClick={() => setShowQuiz(true)}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-fun font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95"
+            >
+              <Award className="w-4 h-4" />
+              <span>Doen Oefentoets 📝</span>
+            </button>
           </div>
         </div>
       )}

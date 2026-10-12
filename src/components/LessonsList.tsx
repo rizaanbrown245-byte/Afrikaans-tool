@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, CheckCircle, Star, Filter, BookOpen, Volume2 } from 'lucide-react';
+import { Search, CheckCircle, Star, Filter, BookOpen, Volume2, Sparkles } from 'lucide-react';
 import { LessonContent, Term } from '../types';
 import { LESSONS_DATA } from '../data/curriculumData';
 import { useProgress } from '../context/ProgressContext';
@@ -8,9 +8,10 @@ import { speakAfrikaans, sounds } from '../utils/audio';
 
 interface LessonsListProps {
   onSelectLesson: (lessonId: string) => void;
+  onOpenSearch?: () => void;
 }
 
-export const LessonsList: React.FC<LessonsListProps> = ({ onSelectLesson }) => {
+export const LessonsList: React.FC<LessonsListProps> = ({ onSelectLesson, onOpenSearch }) => {
   const { progress } = useProgress();
   const [selectedTerm, setSelectedTerm] = useState<number | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,16 +85,30 @@ export const LessonsList: React.FC<LessonsListProps> = ({ onSelectLesson }) => {
           ))}
         </div>
 
-        {/* Search Input */}
-        <div className="relative min-w-[220px] flex-1 sm:flex-initial">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Soek onderwerp of woord..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-          />
+        {/* Search Input & Deep Search Panel Button */}
+        <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+          <div className="relative min-w-[200px] flex-1 sm:flex-initial">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Vinnige soektog..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+            />
+          </div>
+
+          {onOpenSearch && (
+            <button
+              type="button"
+              onClick={onOpenSearch}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-fun font-black text-xs shadow-2xs transition-all active:scale-95 whitespace-nowrap"
+              title="Maak volledige soek-paneel oop (met flitskaarte en klank)"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Gevorderde Soek</span>
+            </button>
+          )}
         </div>
       </div>
 

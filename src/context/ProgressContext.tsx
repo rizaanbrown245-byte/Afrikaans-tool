@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
 import { UserProgress, LanguageTrack, OllieMilestoneBadge } from '../types';
 import { BADGES_DATA, OLLIE_BADGES_DATA } from '../data/badgesData';
 import { sounds, setGlobalAudioEnabled } from '../utils/audio';
+import {
+  fireLessonCompleteConfetti,
+  fireBadgeUnlockConfetti,
+  fireQuickRewardConfetti
+} from '../utils/confetti';
 
 interface ProgressContextType {
   progress: UserProgress;
@@ -13,6 +17,12 @@ interface ProgressContextType {
   completeLesson: (lessonId: string, scorePercent: number) => void;
   recordQuizResult: (lessonId: string, score: number, total: number) => void;
   recordGamePlayed: () => void;
+  recordExamResult: (
+    score: number,
+    totalMarks: number,
+    sectionBreakdown: Record<string, { earned: number; total: number }>
+  ) => void;
+  setChildName: (name: string) => void;
   setLanguageTrack: (track: LanguageTrack) => void;
   setSelectedAvatar: (avatarId: string) => void;
   toggleSound: () => void;
@@ -20,6 +30,8 @@ interface ProgressContextType {
   resetProgress: () => void;
   removeWeakTopic: (lessonId: string) => void;
   triggerConfetti: () => void;
+  fireLessonCompleteConfetti: () => void;
+  fireBadgeUnlockConfetti: () => void;
 }
 
 const STORAGE_KEY = 'afrikaans_adventure_progress_v1';
@@ -88,15 +100,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [progress]);
 
   const triggerConfetti = () => {
-    try {
-      confetti({
-        particleCount: 70,
-        spread: 60,
-        origin: { y: 0.6 }
-      });
-    } catch {
-      // ignore
-    }
+    fireLessonCompleteConfetti();
   };
 
   const checkBadgeUnlocks = (newProg: UserProgress): { badges: string[]; ollieBadges: string[] } => {
@@ -119,7 +123,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (shouldUnlock) {
         newlyUnlocked.push(b.id);
         sounds.playVictory();
-        triggerConfetti();
+        fireBadgeUnlockConfetti();
       }
     });
 
@@ -149,7 +153,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         newlyUnlockedOllie.push(ob.id);
         setLatestUnlockedOllieBadge(ob);
         sounds.playVictory();
-        triggerConfetti();
+        fireBadgeUnlockConfetti();
       }
     });
 
@@ -201,7 +205,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       nextProg.unlockedBadges = badges;
       nextProg.unlockedOllieBadgeIds = ollieBadges;
       sounds.playVictory();
-      triggerConfetti();
+      fireLessonCompleteConfetti();
       return nextProg;
     });
   };
@@ -243,6 +247,55 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       nextProg.unlockedOllieBadgeIds = ollieBadges;
       return nextProg;
     });
+  };
+
+  const recordExamResult = (
+    score: number,
+    totalMarks: number,
+    sectionBreakdown: Record<string, { earned: number; total: number }>
+  ) => {
+    const percentage = Math.round((score / totalMarks) * 100);
+    const passed = percentage >= 50;
+
+    setProgress((prev) => {
+      const attempts = prev.examAttempts || [];
+      const newAttempt = {
+        date: new Date().toISOString(),
+        score,
+        totalMarks,
+        percentage,
+        sectionBreakdown,
+        passed
+      };
+
+      const starsBonus = Math.max(5, Math.round(score / 2));
+      const gemsBonus = percentage >= 80 ? 5 : percentage >= 60 ? 3 : 1;
+
+      const nextProg: UserProgress = {
+        ...prev,
+        stars: prev.stars + starsBonus,
+        gems: prev.gems + gemsBonus,
+        examAttempts: [newAttempt, ...attempts.slice(0, 20)]
+      };
+
+      const { badges, ollieBadges } = checkBadgeUnlocks(nextProg);
+      nextProg.unlockedBadges = badges;
+      nextProg.unlockedOllieBadgeIds = ollieBadges;
+
+      if (passed) {
+        sounds.playVictory();
+        triggerConfetti();
+      }
+
+      return nextProg;
+    });
+  };
+
+  const setChildName = (name: string) => {
+    setProgress((prev) => ({
+      ...prev,
+      childName: name
+    }));
   };
 
   const setLanguageTrack = (track: LanguageTrack) => {
@@ -323,13 +376,17 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         completeLesson,
         recordQuizResult,
         recordGamePlayed,
+        recordExamResult,
+        setChildName,
         setLanguageTrack,
         setSelectedAvatar,
         toggleSound,
         completeDailyChallenge,
         resetProgress,
         removeWeakTopic,
-        triggerConfetti
+        triggerConfetti,
+        fireLessonCompleteConfetti,
+        fireBadgeUnlockConfetti
       }}
     >
       {children}

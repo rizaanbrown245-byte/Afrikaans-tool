@@ -5,6 +5,7 @@ import { BADGES_DATA, ANIMAL_AVATARS, OLLIE_BADGES_DATA } from '../data/badgesDa
 import { OllieCharacter } from './OllieCharacter';
 import { OllieBadgeGraphic } from './OllieBadgeGraphic';
 import { speakAfrikaans, sounds } from '../utils/audio';
+import { fireBadgeUnlockConfetti } from '../utils/confetti';
 
 export const BadgeModal: React.FC = () => {
   const { progress, setSelectedAvatar } = useProgress();
@@ -16,11 +17,13 @@ export const BadgeModal: React.FC = () => {
       return;
     }
     sounds.playVictory();
+    fireBadgeUnlockConfetti();
     setSelectedAvatar(avatarId);
   };
 
   const handleBadgeClick = (msg: string) => {
-    sounds.playPop();
+    sounds.playVictory();
+    fireBadgeUnlockConfetti();
     speakAfrikaans(msg);
   };
 
@@ -43,9 +46,21 @@ export const BadgeModal: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-xs px-3.5 py-2 rounded-2xl border border-white/30 text-white font-fun">
-            <Star className="w-5 h-5 text-amber-300 fill-amber-300" />
-            <span className="font-black text-sm">{progress.stars} Sterre beskikbaar</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                sounds.playVictory();
+                fireBadgeUnlockConfetti();
+              }}
+              className="px-3.5 py-2 rounded-2xl bg-yellow-300 hover:bg-yellow-400 text-amber-950 font-fun font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95"
+              title="Vier jou prestasies met konfetti!"
+            >
+              <span>🎉 Skiet Konfetti!</span>
+            </button>
+            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-xs px-3.5 py-2 rounded-2xl border border-white/30 text-white font-fun">
+              <Star className="w-5 h-5 text-amber-300 fill-amber-300" />
+              <span className="font-black text-sm">{progress.stars} Sterre beskikbaar</span>
+            </div>
           </div>
         </div>
       </div>
